@@ -1,5 +1,7 @@
 ;;;; ido-ql:quickload.el
 ;;;;
+;;;; ido-ql:quickload is available under the MIT license; 
+;;;; see LICENSE for details.
 ;;;;
 ;;;; Author: Sviridov Alexander <sviridov.vmi@gmail.com>
 
@@ -56,7 +58,7 @@
 
 (defun ido-ql:quickload-save-to-file ()
   "Save IDO-QL:QUICKLOAD-HISTORY and IDO-QL:QUICKLOAD-DATA 
-   into IDO-QL:QUICKLOAD-SAVE-FILE."
+   into IDO-QL:QUICKLOAD-SAVE-FILE"
   (interactive)
   (with-temp-file (expand-file-name ido-ql:quickload-save-file)
     (print ido-ql:quickload-history (current-buffer))
@@ -111,7 +113,7 @@
 ;;;=================================================================================================
 
 (defun ql:quickload ()
-  "Switches to SLIME-REPL buffer and inserts into it (QL:QUICKLOAD <SELECTED-SYSTEM>) RET"
+  "Switches to SLIME-REPL buffer and inserts (QL:QUICKLOAD <SELECTED-SYSTEM>) RET into it"
   (interactive)
   (let ((slime-buffer (find-if (lambda (buffer) (string-match-p "slime-repl" (buffer-name buffer))) 
 			       (buffer-list)))
