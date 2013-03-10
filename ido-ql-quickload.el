@@ -171,6 +171,7 @@
           (buffer (current-buffer)))
       (switch-to-buffer slime-buffer)
       (end-of-buffer)
+      (slime-repl-kill-input)
       (insert "(ql:quickload :")
       (condition-case err
           (let ((system (ido-ql-quickload-select-system)))
