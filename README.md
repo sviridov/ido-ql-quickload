@@ -18,6 +18,8 @@
 
 The systems are displayed in an Ido completion buffer, ordered by relevance. The 5 most recently loaded systems come first, the rest are sorted by location (local sytems come before Quicklisp sytems), frequency of use and in alphabetical order.
 
+One can also use `M-x ql:quickload` as a replacement for `ql:system-apropos`.
+
 ## Learn more
 
 ### Persistence
@@ -32,3 +34,7 @@ Set `ido-ql-quickload-max-history-size` to change the number of recent systems t
 To ignore **ido-ql-quickload** history set `ido-ql-quickload-max-history-size` to `0`.
 
 To ignore system location set `ido-ql-quickload-ignore-local-projects-priority` to `t`.
+
+### Aborting
+
+To abort `M-x ql:quickload` type `C-g`
