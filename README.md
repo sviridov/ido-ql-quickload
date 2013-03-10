@@ -38,3 +38,7 @@ To ignore system location set `ido-ql-quickload-ignore-local-projects-priority` 
 ### Aborting
 
 To abort `M-x ql:quickload` type `C-g`
+
+### Suppression of output
+
+To disable switching to `slime-repl` buffer and suppression of `ql:quickload` output set `ido-ql-quickload-suppress-output` to t

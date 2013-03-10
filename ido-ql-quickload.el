@@ -14,7 +14,7 @@
 (defgroup ido-ql-quickload nil
   "ql:quickload interface with Ido-style fuzzy matching and ranking heuristics"
   :group 'slime
-  :version "1.0"
+  :version "1.1"
   :link '(emacs-library-link :tag "Lisp File" "ido-ql-quickload.el"))
 
 (defcustom ido-ql-quickload-save-file "~/.ido-ql-quickload"
@@ -36,6 +36,12 @@
 (defcustom ido-ql-quickload-ignore-local-projects-priority nil
   "If `ido-ql-quickload-ignore-local-projects-priority' is T then `ql:quickload' doesn't
    take into account the location of the projects"
+  :type 'boolean
+  :group 'ido-ql-quickload)
+
+(defcustom ido-ql-quickload-suppress-output nil
+  "If `ido-ql-quickload-suppress-output' is T then `ql:quickload' doesn't
+   switch to `slime-repl' buffer and doesn't print (ql:quickload ...) into it"
   :type 'boolean
   :group 'ido-ql-quickload)
 
@@ -155,22 +161,27 @@
 
 (defun ql:quickload ()
   (interactive)
-  (let ((slime-buffer (find-if (lambda (buffer) (string-match-p "slime-repl" (buffer-name buffer))) 
-                               (buffer-list)))
-        (buffer (current-buffer)))
-    (switch-to-buffer slime-buffer)
-    (end-of-buffer)
-    (insert "(ql:quickload :")
-    (condition-case err
-        (let ((system (ido-ql-quickload-select-system)))
-          (end-of-line)
-          (insert system) 
-          (insert ")")
-          (execute-kbd-macro (read-kbd-macro "RET")))
-      (quit (when (string-equal (buffer-substring (- (point) 15) (point))
-                                "(ql:quickload :")
-              (backward-delete-char 15))))
-    (switch-to-buffer buffer)))
+  (if ido-ql-quickload-suppress-output
+
+      (slime-eval `(cl:with-open-stream (cl:*standard-output* (cl:make-broadcast-stream))
+                     (ql:quickload ,(ido-ql-quickload-select-system))))
+
+    (let ((slime-buffer (find-if (lambda (buffer) (string-match-p "slime-repl" (buffer-name buffer))) 
+                                 (buffer-list)))
+          (buffer (current-buffer)))
+      (switch-to-buffer slime-buffer)
+      (end-of-buffer)
+      (insert "(ql:quickload :")
+      (condition-case err
+          (let ((system (ido-ql-quickload-select-system)))
+            (end-of-line)
+            (insert system) 
+            (insert ")")
+            (execute-kbd-macro (read-kbd-macro "RET")))
+        (quit (when (string-equal (buffer-substring (- (point) 15) (point))
+                                  "(ql:quickload :")
+                (backward-delete-char 15))))
+      (switch-to-buffer buffer))))
 
 ;;;=================================================================================================
 
