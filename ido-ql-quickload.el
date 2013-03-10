@@ -117,7 +117,7 @@
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-select-system ()
-  "Asks the user to select `system' to `ql-quickload' with `ido'.
+  "Asks the user to select `system' to `ql:quickload' with `ido'.
    Systems by default are sorted in order:
    1. `ido-ql-quickload-max-history-size' number of last selected systems
    2. Quicklisp local systems sorted by score and name
