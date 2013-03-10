@@ -1,7 +1,7 @@
 ;;;; ido-ql-quickload.el
 ;;;;
 ;;;; ido-ql-quickload is available under the MIT license;
-;;;; see LICENSE for details.
+;;;; see LICENSE for details
 ;;;;
 ;;;; For a detailed introduction see: README.md
 ;;;;
@@ -11,8 +11,16 @@
 
 ;;;=================================================================================================
 
-(defvar ido-ql-quickload-save-file "~/.ido-ql-quickload"
-  "File in which the ido-ql-quickload state is saved between Emacs sessions.")
+(defgroup ido-ql-quickload nil
+  "ql:quickload interface with Ido-style fuzzy matching and ranking heuristics"
+  :group 'slime
+  :version "1.0"
+  :link '(emacs-library-link :tag "Lisp File" "ido-ql-quickload.el"))
+
+(defcustom ido-ql-quickload-save-file "~/.ido-ql-quickload"
+  "File in which the ido-ql-quickload state is saved between Emacs sessions"
+  :type 'string
+  :group 'ido-ql-quickload)
 
 (defvar ido-ql-quickload-statistics (make-hash-table :test 'equal)
   "Variable in which the ido-ql-quickload statistics is stored")
@@ -20,17 +28,21 @@
 (defvar ido-ql-quickload-history nil
   "Variable in which the ido-ql-quickload history is stored")
 
-(defvar ido-ql-quickload-max-history-size 5
-  "Variable that defines the ido-ql-quickload history maximum size")
+(defcustom ido-ql-quickload-max-history-size 5
+  "Variable that defines the ido-ql-quickload history maximum size"
+  :type 'integer
+  :group 'ido-ql-quickload)
 
-(defvar ido-ql-quickload-ignore-local-projects-priority nil
-  "If IDO-QL-QUICKLOAD-IGNORE-LOCAL-PROJECTS-PRIORITY is T then (QL:QUICKLOAD) doesn't
-   take into account the location of the projects")
+(defcustom ido-ql-quickload-ignore-local-projects-priority nil
+  "If `ido-ql-quickload-ignore-local-projects-priority' is T then `ql:quickload' doesn't
+   take into account the location of the projects"
+  :type 'boolean
+  :group 'ido-ql-quickload)
 
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-drop-extra-history-items ()
-  "Drops extra items from tail of IDO-QL-QUICKLOAD-HISTORY"
+  "Drops extra items from tail of `ido-ql-quickload-history'"
   (when (< ido-ql-quickload-max-history-size (length ido-ql-quickload-history))
     (setf ido-ql-quickload-history 
           (butlast ido-ql-quickload-history 
@@ -40,33 +52,33 @@
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-initialize ()
-  "Reading the contents of the IDO-QL-QUICKLOAD-SAVE-FILE
-   into IDO-QL-QUICKLOAD-HISTORY and IDO-QL-QUICKLOAD-STATISTICS"
+  "Reads the contents of the `ido-ql-quickload-save-file'
+   into `ido-ql-quickload-history' and `ido-ql-quickload-statistics'"
   (when (file-readable-p ido-ql-quickload-save-file)
     (with-temp-buffer
       (insert-file-contents ido-ql-quickload-save-file)
       (setf ido-ql-quickload-history (read (current-buffer))
             ido-ql-quickload-statistics (read (current-buffer))))
 
-    ;; In case the user has reduced the value of the IDO-QL-QUICKLOAD-MAX-HISTORY-SIZE
+    ;; In case the user has reduced the value of the `ido-ql-quickload-max-history-size'
     ;; between sessions
     (ido-ql-quickload-drop-extra-history-items)))
 
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-update-system-score (system)
-  "Increments SYSTEM score.
-   For new SYSTEM sets score to 1"
+  "Increments `system' score.
+   For new `system' sets score to 1"
   (setf (gethash system ido-ql-quickload-statistics)
         (+ 1 (gethash system ido-ql-quickload-statistics 0))))
 
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-update-history (system)
-  "Moves SYSTEM to first position at IDO-QL-QUICKLOAD-HISTORY.
-   If (LENGTH IDO-QL-QUICKLOAD-HISTORY) = IDO-QL-QUICKLOAD-MAX-HISTORY-SIZE
-   and (NOT (MEMBER SYSTEM IDO-QL-QUICKLOAD-HISTORY)) drops the last item of
-   IDO-QL-QUICKLOAD-HISTORY"
+  "Moves `system' to first position at `ido-ql-quickload-history'.
+   If (`length' `ido-ql-quickload-history') = `ido-ql-quickload-max-history-size'
+   and (`not' (`member' `system' `ido-ql-quickload-history')) drops the last item of
+   `ido-ql-quickload-history'"
   (when (plusp ido-ql-quickload-max-history-size)
     (setf ido-ql-quickload-history (cons system (remove system ido-ql-quickload-history)))
     (ido-ql-quickload-drop-extra-history-items)))
@@ -74,9 +86,10 @@
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-save-to-file ()
-  "Saves IDO-QL-QUICKLOAD-HISTORY and IDO-QL-QUICKLOAD-STATISTICS 
-   into IDO-QL-QUICKLOAD-SAVE-FILE"
+  "Saves `ido-ql-quickload-history' and `ido-ql-quickload-statistics' 
+   into `ido-ql-quickload-save-file'"
   (interactive)
+  (ido-ql-quickload-drop-extra-history-items)
   (with-temp-file (expand-file-name ido-ql-quickload-save-file)
     (print ido-ql-quickload-history (current-buffer))
     (print ido-ql-quickload-statistics (current-buffer))))
@@ -86,7 +99,7 @@
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-sort-systems-names (systems-names)
-  "Sorts SYSTEMS-NAMES list by:
+  "Sorts `systems-names' list by:
    1. Score
    2. Aplhabet"
   (let ((grouped-by-score-names-table (make-hash-table))
@@ -104,13 +117,14 @@
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-select-system ()
-  "Asks the user to select SYSTEM to QL-QUICKLOAD with IDO.
-   Systems are sorted in order:
-   1. <= IDO-QL-QUICKLOAD-MAX-HISTORY-SIZE number of last selected systems
+  "Asks the user to select `system' to `ql-quickload' with `ido'.
+   Systems by default are sorted in order:
+   1. `ido-ql-quickload-max-history-size' number of last selected systems
    2. Quicklisp local systems sorted by score and name
    3. Other Quicklisp systems sorted by score and name"
+  (ido-ql-quickload-drop-extra-history-items)
   (let* ((ido-enable-flex-matching t)
-
+         
          (local-systems (nset-difference (slime-eval '(ql:list-local-systems))
                                          ido-ql-quickload-history
                                          :test #'string-equal))
@@ -147,11 +161,15 @@
     (switch-to-buffer slime-buffer)
     (end-of-buffer)
     (insert "(ql:quickload :")
-    (let ((system (ido-ql-quickload-select-system)))
-      (end-of-line)
-      (insert system))
-    (insert ")")
-    (execute-kbd-macro (read-kbd-macro "RET"))
+    (condition-case err
+        (let ((system (ido-ql-quickload-select-system)))
+          (end-of-line)
+          (insert system) 
+          (insert ")")
+          (execute-kbd-macro (read-kbd-macro "RET")))
+      (quit (when (string-equal (buffer-substring (- (point) 15) (point))
+                                "(ql:quickload :")
+              (backward-delete-char 15))))
     (switch-to-buffer buffer)))
 
 ;;;=================================================================================================
