@@ -163,8 +163,11 @@
   (interactive)
   (if ido-ql-quickload-suppress-output
 
-      (slime-eval `(cl:with-open-stream (cl:*standard-output* (cl:make-broadcast-stream))
-                     (ql:quickload ,(ido-ql-quickload-select-system))))
+      (slime-eval-async 
+       `(cl:with-open-stream (cl:*standard-output* (cl:make-broadcast-stream))
+          (ql:quickload ,(ido-ql-quickload-select-system)))
+        (lambda (system)
+          (message "Loaded: %s" (first system))))
 
     (let ((slime-buffer (find-if (lambda (buffer) (string-match-p "slime-repl" (buffer-name buffer))) 
                                  (buffer-list)))
