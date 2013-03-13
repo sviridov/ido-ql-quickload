@@ -181,7 +181,7 @@
             (end-of-line)
             (insert system) 
             (insert ")")
-            (execute-kbd-macro (read-kbd-macro "RET")))
+            (slime-repl-return))
         (quit (when (string-equal (buffer-substring (- (point) 15) (point))
                                   "(ql:quickload :")
                 (backward-delete-char 15))))
