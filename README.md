@@ -16,14 +16,14 @@
 * Run SLiME
 * Type `M-x ql:quickload`
 
-The systems are displayed in an Ido completion buffer, ordered by relevance. The 5 most recently loaded systems come first, the rest are sorted by location (local sytems come before Quicklisp sytems), frequency of use and in alphabetical order.
+The systems are displayed in an Ido completion buffer, ordered by relevance. The 5 most recently loaded systems come first, the rest are sorted by location (local systems come before Quicklisp systems), frequency of use and in alphabetical order.
 
 One can also use `M-x ql:quickload` as a replacement for `ql:system-apropos`.
 
 ## Learn more
 
 ### Persistence
-**ido-ql-quickload** keeps a file to save its state betweens Emacs sessions. The default path is `"~/.ido-ql-quickload"`. One can change it by setting the variable `ido-ql-quickload-save-file`. 
+**ido-ql-quickload** keeps a file to save its state between Emacs sessions. The default path is `"~/.ido-ql-quickload"`. One can change it by setting the variable `ido-ql-quickload-save-file`. 
 
 **Note:** One should change `ido-ql-quickload-save-file` before `(ido-ql-quickload-initialize)`.
 
