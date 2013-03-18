@@ -8,6 +8,7 @@
 ;;;; Copyright (C) 2013 Sviridov Alexander <sviridov.vmi@gmail.com>
 
 (require 'ido)
+(require 'cl)
 
 ;;;=================================================================================================
 
