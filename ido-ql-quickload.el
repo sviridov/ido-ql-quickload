@@ -78,8 +78,7 @@
 (defun ido-ql-quickload-update-system-score (system)
   "Increments `system' score.
    For new `system' sets score to 1"
-  (setf (gethash system ido-ql-quickload-statistics)
-        (+ 1 (gethash system ido-ql-quickload-statistics 0))))
+  (incf (gethash system ido-ql-quickload-statistics 0)))
 
 ;;;=================================================================================================
 
