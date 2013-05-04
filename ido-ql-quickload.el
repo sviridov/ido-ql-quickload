@@ -25,10 +25,10 @@
   :type 'string
   :group 'ido-ql-quickload)
 
-(defvar ido-ql-quickload-statistics (make-hash-table :test 'equal)
+(defvar ido-ql-quickload--statistics (make-hash-table :test 'equal)
   "Variable in which the ido-ql-quickload statistics is stored")
 
-(defvar ido-ql-quickload-history nil
+(defvar ido-ql-quickload--history nil
   "Variable in which the ido-ql-quickload history is stored")
 
 (defcustom ido-ql-quickload-max-history-size 5
@@ -48,26 +48,30 @@
   :type 'boolean
   :group 'ido-ql-quickload)
 
+(defvar ido-ql-quickload--initialized-p nil)
+
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-drop-extra-history-items ()
-  "Drops extra items from tail of `ido-ql-quickload-history'"
-  (when (< ido-ql-quickload-max-history-size (length ido-ql-quickload-history))
-    (setf ido-ql-quickload-history 
-          (butlast ido-ql-quickload-history 
-                   (- (length ido-ql-quickload-history)
+  "Drops extra items from tail of `ido-ql-quickload--history'"
+  (when (< ido-ql-quickload-max-history-size (length ido-ql-quickload--history))
+    (setf ido-ql-quickload--history
+          (butlast ido-ql-quickload--history
+                   (- (length ido-ql-quickload--history)
                       (max 0 ido-ql-quickload-max-history-size))))))
 
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-initialize ()
   "Reads the contents of the `ido-ql-quickload-save-file'
-   into `ido-ql-quickload-history' and `ido-ql-quickload-statistics'"
-  (when (file-readable-p ido-ql-quickload-save-file)
+   into `ido-ql-quickload--history' and `ido-ql-quickload--statistics'"
+  (when (and (file-readable-p ido-ql-quickload-save-file)
+             (not ido-ql-quickload--initialized-p))
     (with-temp-buffer
       (insert-file-contents ido-ql-quickload-save-file)
-      (setf ido-ql-quickload-history (read (current-buffer))
-            ido-ql-quickload-statistics (read (current-buffer))))
+      (setf ido-ql-quickload--history (read (current-buffer))
+            ido-ql-quickload--statistics (read (current-buffer))
+            ido-ql-quickload--initialized-p t))
 
     ;; In case the user has reduced the value of the `ido-ql-quickload-max-history-size'
     ;; between sessions
@@ -78,29 +82,29 @@
 (defun ido-ql-quickload-update-system-score (system)
   "Increments `system' score.
    For new `system' sets score to 1"
-  (incf (gethash system ido-ql-quickload-statistics 0)))
+  (incf (gethash system ido-ql-quickload--statistics 0)))
 
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-update-history (system)
-  "Moves `system' to first position at `ido-ql-quickload-history'.
-   If (`length' `ido-ql-quickload-history') = `ido-ql-quickload-max-history-size'
-   and (`not' (`member' `system' `ido-ql-quickload-history')) drops the last item of
-   `ido-ql-quickload-history'"
+  "Moves `system' to first position at `ido-ql-quickload--history'.
+   If (`length' `ido-ql-quickload--history') = `ido-ql-quickload-max-history-size'
+   and (`not' (`member' `system' `ido-ql-quickload--history')) drops the last item of
+   `ido-ql-quickload--history'"
   (when (plusp ido-ql-quickload-max-history-size)
-    (setf ido-ql-quickload-history (cons system (remove system ido-ql-quickload-history)))
+    (setf ido-ql-quickload--history (cons system (remove system ido-ql-quickload--history)))
     (ido-ql-quickload-drop-extra-history-items)))
 
 ;;;=================================================================================================
 
 (defun ido-ql-quickload-save-to-file ()
-  "Saves `ido-ql-quickload-history' and `ido-ql-quickload-statistics' 
+  "Saves `ido-ql-quickload--history' and `ido-ql-quickload--statistics'
    into `ido-ql-quickload-save-file'"
   (interactive)
   (ido-ql-quickload-drop-extra-history-items)
   (with-temp-file (expand-file-name ido-ql-quickload-save-file)
-    (print ido-ql-quickload-history (current-buffer))
-    (print ido-ql-quickload-statistics (current-buffer))))
+    (print ido-ql-quickload--history (current-buffer))
+    (print ido-ql-quickload--statistics (current-buffer))))
     
 (add-hook 'kill-emacs-hook 'ido-ql-quickload-save-to-file)
 
@@ -114,7 +118,7 @@
         (result nil))
     (dolist (system-name systems-names)
       (push system-name
-            (gethash (gethash system-name ido-ql-quickload-statistics 0) 
+            (gethash (gethash system-name ido-ql-quickload--statistics 0)
                      grouped-by-score-names-table)))
     (maphash (lambda (score names)
                (push (cons score (sort names #'string-lessp)) result))
@@ -134,21 +138,21 @@
   (let* ((ido-enable-flex-matching t)
          
          (local-systems (nset-difference (slime-eval '(ql:list-local-systems))
-                                         ido-ql-quickload-history
+                                         ido-ql-quickload--history
                                          :test #'string-equal))
 
          (quicklisp-systems (nset-difference
                              (slime-eval '(cl:mapcar (cl:function ql-dist:name) 
                                                      (ql:system-list)))
-                             (append ido-ql-quickload-history
+                             (append ido-ql-quickload--history
                                      local-systems)
                              :test #'string-equal))
 
          (systems-list (if ido-ql-quickload-ignore-local-projects-priority
-                           (append ido-ql-quickload-history
+                           (append ido-ql-quickload--history
                                    (ido-ql-quickload-sort-systems-names
                                      (append local-systems quicklisp-systems)))
-                           (append ido-ql-quickload-history
+                           (append ido-ql-quickload--history
                                    (ido-ql-quickload-sort-systems-names local-systems)
                                    (ido-ql-quickload-sort-systems-names quicklisp-systems))))
 
