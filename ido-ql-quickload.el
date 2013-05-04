@@ -6,6 +6,11 @@
 ;;;; For a detailed introduction see: README.md
 ;;;;
 ;;;; Copyright (C) 2013 Sviridov Alexander <sviridov.vmi@gmail.com>
+;;;;
+;;;; Change Log:
+;;;;
+;;;; 1.0 First released
+;;;; 1.1 Added `ido-ql-quickload-suppress-output'
 
 (require 'ido)
 (require 'cl)
